@@ -13,13 +13,10 @@ module Mongoid #:nodoc:
       # options: The association +Options+.
       def initialize(document, options, target = nil)
         @options = options
+        
+        target ||= load_from(document)
 
-        if target
-          replace(target)
-        else
-          replace(load_from(document))
-        end
-
+        replace(target)
         extends(options)
       end
 
