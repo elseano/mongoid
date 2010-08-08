@@ -28,7 +28,7 @@ module Mongoid #:nodoc:
       # Return the foreign key if it exists, otherwise inflect it from the
       # associated class name.
       def foreign_key
-        key = self[:foreign_key] || klass.name.to_s.foreign_key
+        key = self[:foreign_key] || (polymorphic? ? "#{name.to_s}_id" : klass.name.to_s.foreign_key)
         key.to_s
       end
 
@@ -51,7 +51,11 @@ module Mongoid #:nodoc:
       # was provided, then the constantized class_name will be returned. If not,
       # a constant based on the association name will be returned.
       def class_name
-        self[:class_name] || name.to_s.classify
+        if polymorphic?
+          raise "Relation #{name} is polymorphic. Cannot determine class at this stage."
+        else
+          self[:class_name] || name.to_s.classify
+        end
       end
 
       # Returns the association name of the options.
@@ -62,6 +66,11 @@ module Mongoid #:nodoc:
       # Returns whether or not this association is polymorphic.
       def polymorphic
         self[:polymorphic] == true
+      end
+      alias polymorphic? polymorphic
+      
+      def type_key
+        foreign_key.sub(/_id$/, "_type")
       end
 
       # Used with references_many to save as array of ids.

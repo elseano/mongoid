@@ -17,8 +17,7 @@ module Mongoid #:nodoc:
         if target
           replace(target)
         else
-          foreign_key = document.send(options.foreign_key)
-          replace(options.klass.find(foreign_key)) unless foreign_key.blank?
+          replace(load_from(document))
         end
 
         extends(options)
@@ -30,6 +29,18 @@ module Mongoid #:nodoc:
       def replace(obj)
         @target = obj
         self
+      end
+      
+      # Loads the document defined by the relationship
+      def load_from(document)
+        foreign_key = document.send(@options.foreign_key)
+        return nil if foreign_key.blank?
+
+        if foreign_key.is_a?(PolymorphicID)
+          foreign_key.find
+        else
+          @options.klass.find(foreign_key)
+        end
       end
 
       class << self
@@ -51,7 +62,12 @@ module Mongoid #:nodoc:
         #
         # <tt>ReferencedIn.update(person, game, options)</tt>
         def update(target, document, options)
-          document.send("#{options.foreign_key}=", target ? target.id : nil)
+          if options.polymorphic?
+            document.send("#{options.foreign_key}=", target)
+          else
+            document.send("#{options.foreign_key}=", target ? target.id : nil)
+          end
+          
           new(document, options, target)
         end
 

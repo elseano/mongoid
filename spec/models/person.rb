@@ -75,7 +75,8 @@ class Person
   references_many :paranoid_posts
   references_many :preferences, :stored_as => :array, :inverse_of => :people, :index => true
   references_many :user_accounts, :stored_as => :array, :inverse_of => :person
-
+  references_many :ratings, :inverse_of => :person
+  
   def score_with_rescoring=(score)
     @rescored = score.to_i + 20
     self.score_without_rescoring = score

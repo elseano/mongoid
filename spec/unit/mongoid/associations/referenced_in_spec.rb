@@ -17,7 +17,21 @@ describe Mongoid::Associations::ReferencedIn do
         association = Mongoid::Associations::ReferencedIn.new(@document, @options)
         association.should == @related
       end
+      
+    end
+    
+    context "when related id and type has been set for polymorphic" do
+      before do
+        @document = stub(:ratable_id => PolymorphicID.new("Game", "4c52c439931a90ab29000003"))
+        @options = Mongoid::Associations::Options.new(:name => :ratable, :polymorphic => true)
+        @related = stub
+      end
 
+      it "finds the specified type by id" do
+        Game.expects(:find).with("4c52c439931a90ab29000003").returns(@related)
+        association = Mongoid::Associations::ReferencedIn.new(@document, @options)
+        association.should == @related
+      end
     end
 
     context "when options have an extension" do
@@ -107,6 +121,38 @@ describe Mongoid::Associations::ReferencedIn do
       it "makes the association falsy" do
         Mongoid::Associations::ReferencedIn.update(nil, @child, @options)
         (!!@child.person).should == false
+      end
+    end
+  end
+
+  describe ".update", "polymorphic" do
+
+    before do
+      @related = stub(:id => "4c52c439931a90ab29000003")
+      @child = Rating.new
+      @options = Mongoid::Associations::Options.new(:name => :ratable, :polymorphic => true)
+      @association = Mongoid::Associations::ReferencedIn.update(@related, @child, @options)
+    end
+
+    # it "sets the related object id on the parent" do
+    #   @child.ratable.id.should == BSON::ObjectID('4c52c439931a90ab29000003')
+    #   @child.ratable.klass.should == "Mocha::Mock"
+    # end
+
+    it "returns the proxy" do
+      @association.target.should == @related
+    end
+
+    context "when target is nil" do
+
+      it "removes the association" do
+        Mongoid::Associations::ReferencedIn.update(nil, @child, @options)
+        @child.ratable.should be_nil
+      end
+
+      it "makes the association falsy" do
+        Mongoid::Associations::ReferencedIn.update(nil, @child, @options)
+        (!!@child.ratable).should == false
       end
     end
   end

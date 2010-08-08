@@ -20,6 +20,7 @@ require "mongoid/extensions/hash/scoping"
 require "mongoid/extensions/integer/conversions"
 require "mongoid/extensions/nil/assimilation"
 require "mongoid/extensions/object/conversions"
+require "mongoid/extensions/polymorphic_id/conversions"
 require "mongoid/extensions/proc/scoping"
 require "mongoid/extensions/string/conversions"
 require "mongoid/extensions/string/inflections"
@@ -89,6 +90,24 @@ class Object #:nodoc:
   include Mongoid::Extensions::Object::Conversions
 end
 
+class PolymorphicID #:nodoc
+  attr_reader :klass, :id
+  
+  def initialize(klass, id)
+    @klass, @id = klass, id
+  end
+  
+  def find
+    if @klass
+      @klass.constantize.find(@id)
+    else
+      nil
+    end
+  end
+  
+  include Mongoid::Extensions::PolymorphicID::Conversions
+end
+
 class Proc #:nodoc:
   include Mongoid::Extensions::Proc::Scoping
 end
@@ -119,3 +138,4 @@ class BSON::ObjectID #:nodoc
     to_s
   end
 end
+

@@ -5,6 +5,8 @@ class Game
   field :name
   referenced_in :person, :index => true
   enslave and cache
+  
+  references_many :ratings, :as => :ratable
 
   attr_protected :_id
 

@@ -180,8 +180,16 @@ module Mongoid # :nodoc:
         opts = optionize(name, options, constraint(name, options, :in), &block)
         Associations::ReferencedIn.validate_options(opts)
         associate(Associations::ReferencedIn, opts)
-        field(opts.foreign_key, :inverse_class_name => opts.class_name, :identity => true)
-        index(opts.foreign_key, :background => true) if !embedded? && opts.index
+        
+        if opts.polymorphic? && !embedded?
+          puts "Defining poly field #{opts.foreign_key}"
+          field(opts.foreign_key, :type => PolymorphicID)
+          index(opts.foreign_key, :background => true) if opts.index
+        else
+          field(opts.foreign_key, :inverse_class_name => opts.class_name, :identity => true)
+          index(opts.foreign_key, :background => true) if !embedded? && opts.index
+        end
+        
         set_callback(:save, :before) { |document| document.update_foreign_keys }
       end
 
