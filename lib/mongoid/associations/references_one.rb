@@ -27,9 +27,14 @@ module Mongoid #:nodoc:
       # Returns the association proxy
       def replace(obj)
         @target = obj
-        inverse = @target.associations.values.detect do |metadata|
-          metadata.options.klass == @parent.class
+        inverse = if @poly_as
+          @target.associations[@poly_as.to_s]
+        else
+          @target.associations.values.detect do |metadata|
+            metadata.options.klass == @parent.class
+          end
         end
+        
         name = inverse.name
         @target.send("#{name}=", @parent)
 
@@ -46,7 +51,16 @@ module Mongoid #:nodoc:
       def initialize(document, options)
         @parent, @klass = document, options.klass
         @foreign_key = options.foreign_key
-        @target = @klass.first(:conditions => { @foreign_key => @parent.id })
+        
+        @poly_as = options[:as]
+        
+        @target = if @poly_as 
+          @klass.first(:conditions => { "#{@poly_as}_id.type" => @parent.class.name, "#{@poly_as}_id.id" => @parent.id })
+        else
+          @klass.first(:conditions => { @foreign_key => @parent.id })
+        end
+
+        
         extends(options)
       end
 

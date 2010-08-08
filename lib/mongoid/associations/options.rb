@@ -69,10 +69,6 @@ module Mongoid #:nodoc:
       end
       alias polymorphic? polymorphic
       
-      def type_key
-        foreign_key.sub(/_id$/, "_type")
-      end
-
       # Used with references_many to save as array of ids.
       def stored_as
         self[:stored_as]

@@ -77,6 +77,8 @@ class Person
   references_many :user_accounts, :stored_as => :array, :inverse_of => :person
   references_many :ratings, :inverse_of => :person
   
+  references_one :widget, :as => :owner
+  
   def score_with_rescoring=(score)
     @rescored = score.to_i + 20
     self.score_without_rescoring = score

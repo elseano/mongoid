@@ -7,6 +7,7 @@ class Game
   enslave and cache
   
   references_many :ratings, :as => :ratable
+  
 
   attr_protected :_id
 

@@ -134,10 +134,10 @@ describe Mongoid::Associations::ReferencedIn do
       @association = Mongoid::Associations::ReferencedIn.update(@related, @child, @options)
     end
 
-    # it "sets the related object id on the parent" do
-    #   @child.ratable.id.should == BSON::ObjectID('4c52c439931a90ab29000003')
-    #   @child.ratable.klass.should == "Mocha::Mock"
-    # end
+    it "sets the related object id on the parent" do
+      @child.ratable_id.id.should == BSON::ObjectID('4c52c439931a90ab29000003')
+      @child.ratable_id.klass.should == "Mocha::Mock"
+    end
 
     it "returns the proxy" do
       @association.target.should == @related

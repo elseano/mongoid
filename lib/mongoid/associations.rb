@@ -182,7 +182,6 @@ module Mongoid # :nodoc:
         associate(Associations::ReferencedIn, opts)
         
         if opts.polymorphic? && !embedded?
-          puts "Defining poly field #{opts.foreign_key}"
           field(opts.foreign_key, :type => PolymorphicID)
           index(opts.foreign_key, :background => true) if opts.index
         else
@@ -235,6 +234,7 @@ module Mongoid # :nodoc:
       def references_one(name, options = {}, &block)
         opts = optionize(name, options, constraint(name, options, :one), &block)
         type = Associations::ReferencesOne
+        
         associate(type, opts)
         add_builder(type, opts)
         add_creator(type, opts)
