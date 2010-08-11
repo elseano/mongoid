@@ -78,6 +78,7 @@ class Person
   references_many :ratings, :inverse_of => :person
   
   references_one :widget, :as => :owner
+  references_many :mansions, :as => :owner
   
   def score_with_rescoring=(score)
     @rescored = score.to_i + 20

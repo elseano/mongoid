@@ -224,12 +224,25 @@ module Mongoid # :nodoc:
       # Options:
       #
       # name: A +Symbol+ that is the related class name pluralized.
+      # as: A +Symbol+ which matches the name of a polymorphic referenced_in.
       #
       # Example:
       #
       #   class Person
       #     include Mongoid::Document
       #     references_one :game
+      #   end
+      #
+      # Polymorphic Example:
+      #
+      #   class Person
+      #     include Mongoid::Document
+      #     references_one :widget, :as => :owner
+      #   end
+      #
+      #   class Widget
+      #     include Mongoid::Document
+      #     referenced_in :owner, :polymorphic => true
       #   end
       def references_one(name, options = {}, &block)
         opts = optionize(name, options, constraint(name, options, :one), &block)

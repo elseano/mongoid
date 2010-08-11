@@ -10,7 +10,13 @@ module Mongoid #:nodoc:
       def <<(*objects)
         load_target
         objects.flatten.each do |object|
-          object.write_attribute(@foreign_key, @parent.id)
+          if @poly_as
+            object.write_attribute("#{@poly_as}_id.type", @parent.class.name)
+            object.write_attribute("#{@poly_as}_id.id", @parent.id)
+          else
+            object.write_attribute(@foreign_key, @parent.id)
+          end
+            
           @target << object
           object.save unless @parent.new_record?
         end
@@ -28,7 +34,13 @@ module Mongoid #:nodoc:
         load_target
         name = determine_name
         object = @klass.instantiate(attributes || {})
-        object.send("#{name}=", @parent)
+        
+        if @poly_as
+          object.send("#{@poly_as}=", @parent)
+        else
+          object.send("#{name}=", @parent)
+        end
+        
         @target << object
         object
       end
@@ -81,7 +93,8 @@ module Mongoid #:nodoc:
       # If an id is passed, will return the document for that id.
       def find(id_or_type, options = {})
         return self.id_criteria(id_or_type) unless id_or_type.is_a?(Symbol)
-        options[:conditions] = (options[:conditions] || {}).merge(@foreign_key.to_sym => @parent.id)
+        
+        options[:conditions] = (options[:conditions] || {}).merge(selector)
         @klass.find(id_or_type, options)
       end
 
@@ -95,6 +108,7 @@ module Mongoid #:nodoc:
       def initialize(document, options, target = nil)
         setup(document, options)
         @target = target || query.call
+        @poly_as = options[:as]
       end
 
       # Override the default behavior to allow the criteria to get reset on
@@ -150,6 +164,15 @@ module Mongoid #:nodoc:
         @proxy ||= class << self; self; end
         @proxy.send(:determine_name, @parent, @options)
       end
+      
+      def selector
+        poly_as = @poly_as || options[:as]
+        if poly_as
+          { "#{poly_as}_id.type" => @parent.class.name, "#{poly_as}_id.id" => @parent.id }
+        else
+          { @foreign_key.to_sym => @parent.id }
+        end
+      end
 
       # The default query used for retrieving the documents from the database.
       # In this case we use the common API between Mongoid, ActiveRecord, and
@@ -166,12 +189,11 @@ module Mongoid #:nodoc:
       #   An +Array+ of objects if an ActiveRecord association
       #   A +Collection+ if a DataMapper association.
       def query
-        @query ||= lambda { @klass.all(:conditions => { @foreign_key => @parent.id }) }
+        @query ||= lambda { @klass.all(:conditions => selector) }
       end
 
       # Remove the objects based on conditions.
       def remove(method, conditions)
-        selector = { @foreign_key => @parent.id }.merge(conditions || {})
         removed = @klass.send(method, :conditions => selector)
         reset; removed
       end
@@ -240,8 +262,12 @@ module Mongoid #:nodoc:
 
         def detect_association(target, options, with_class_name = false)
           association = options.klass.associations.values.detect do |metadata|
-            metadata.options.klass == target &&
-              (with_class_name ? true : metadata.options[:class_name].nil?)
+            if options[:as]
+              metadata.association.name.to_sym == options[:as].to_sym
+            else
+              metadata.options.klass == target &&
+                (with_class_name ? true : metadata.options[:class_name].nil?)
+            end
           end
         end
       end

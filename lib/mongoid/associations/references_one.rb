@@ -27,18 +27,21 @@ module Mongoid #:nodoc:
       # Returns the association proxy
       def replace(obj)
         @target = obj
-        inverse = if @poly_as
+        
+        name = association.name
+        @target.send("#{name}=", @parent)
+
+        self
+      end
+      
+      def association
+        if @poly_as
           @target.associations[@poly_as.to_s]
         else
           @target.associations.values.detect do |metadata|
             metadata.options.klass == @parent.class
           end
-        end
-        
-        name = inverse.name
-        @target.send("#{name}=", @parent)
-
-        self
+        end        
       end
 
       # Initializing a related association only requires looking up the objects

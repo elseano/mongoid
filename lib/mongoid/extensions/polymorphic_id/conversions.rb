@@ -19,13 +19,13 @@ module Mongoid #:nodoc:
             if value.nil?
               nil
             else
+              puts value.inspect
               { :type => value.class.name, :id => ::BSON::ObjectID(value.id.to_s) }
             end
           end
 
           def get(value)
             if value && value.respond_to?(:has_key?) && value.has_key?(:type) && value.has_key?(:id)
-              puts "Correct format"
               new(value[:type], value[:id])
             else
               nil
