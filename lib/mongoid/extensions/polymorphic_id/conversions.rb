@@ -19,7 +19,6 @@ module Mongoid #:nodoc:
             if value.nil?
               nil
             else
-              puts value.inspect
               { :type => value.class.name, :id => ::BSON::ObjectID(value.id.to_s) }
             end
           end
