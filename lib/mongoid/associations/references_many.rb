@@ -36,6 +36,7 @@ module Mongoid #:nodoc:
         object = @klass.instantiate(attributes || {})
         
         if @poly_as
+          puts "Setting #{@poly_as} to #{@parent.class}"
           object.send("#{@poly_as}=", @parent)
         else
           object.send("#{name}=", @parent)

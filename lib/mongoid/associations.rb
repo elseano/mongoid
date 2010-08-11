@@ -59,7 +59,12 @@ module Mongoid # :nodoc:
         foreign_key = association.options.foreign_key
         if send(foreign_key).nil?
           proxy = send(name)
-          send("#{foreign_key}=", proxy && proxy.target ? proxy.id : nil)
+          
+          if association.options[:polymorphic]
+            send("#{foreign_key}=", proxy)
+          else
+            send("#{foreign_key}=", proxy && proxy.target ? proxy.id : nil)
+          end
         end
       end
     end

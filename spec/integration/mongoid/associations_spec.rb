@@ -255,6 +255,42 @@ describe Mongoid::Associations do
     end
 
   end
+  
+  context "one-to-many polymorphic associations" do
+    
+    describe "#build" do
+      it "sets the inverse value" do
+        person = Person.create(:title => "Sir")
+        mansion = person.mansions.build
+        
+        mansion.owner.should == person
+      end
+    end
+    
+    describe "#create" do
+      it "should set the polymorphic ID" do
+        person = Person.create(:title => "Sir")
+        mansion = person.mansions.create
+        mansion.owner_id.class.should == PolymorphicID
+      end
+    end
+    
+    describe "#find" do
+      it "should still resolve the object" do
+        puts "Creating..."
+        person = Person.create(:title => "Sir")
+        mansion = person.mansions.create
+        
+        puts "Reloading..."
+        person.reload
+        mansion.reload
+        
+        puts "Fetching..."
+        mansion.owner_id.should_not be_nil
+      end
+    end
+    
+  end
 
   context "one-to-many relational associations" do
     [

@@ -16,6 +16,7 @@ module Mongoid #:nodoc:
           end
 
           def set(value)
+            puts "Calling set with #{value.class.name}"
             if value.nil?
               nil
             else
@@ -24,7 +25,12 @@ module Mongoid #:nodoc:
           end
 
           def get(value)
-            if value && value.respond_to?(:has_key?) && value.has_key?(:type) && value.has_key?(:id)
+            puts "Extracting value #{value.inspect}"
+            if value && value.respond_to?(:has_key?) && value.has_key?("type") && value.has_key?("id")
+              puts "Understood"
+              new(value["type"], value["id"])
+            elsif value && value.respond_to?(:has_key?) && value.has_key?(:type) && value.has_key?(:id)
+              puts "Understood"
               new(value[:type], value[:id])
             else
               nil

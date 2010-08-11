@@ -13,7 +13,6 @@ module Mongoid #:nodoc:
       # options: The association +Options+.
       def initialize(document, options, target = nil)
         @options = options
-        
         target ||= load_from(document)
 
         replace(target)
@@ -60,7 +59,9 @@ module Mongoid #:nodoc:
         # <tt>ReferencedIn.update(person, game, options)</tt>
         def update(target, document, options)
           if options.polymorphic?
+            puts "Setting poly #{target.inspect}"
             document.send("#{options.foreign_key}=", target)
+            puts "Set FK to #{document.send(options.foreign_key).inspect}"
           else
             document.send("#{options.foreign_key}=", target ? target.id : nil)
           end
